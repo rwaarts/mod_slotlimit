@@ -1,5 +1,8 @@
 /*
  * 
+ * Date:        2015/08/22
+ * Edited by:   R. Waarts 
+ *
  * Date:        2011/04/10
  * Info:        mod_slotlimit Apache2 module
  * Contact:     mailto: <luca@lucaercoli.it>
@@ -115,7 +118,7 @@ void listadomini(char *file)
 {
 
     int count = 0;
-
+    
     char *token;
     FILE *effeppi;
 
@@ -189,8 +192,14 @@ static int core(request_rec *r, mod_config *cfg)
 	int vhost_count = 0;
 	int nAllSlots = 0;        
 
+        int wwwcount=0;
+
+
 	char siti_visitati[2048][VHOST_LEN];
 
+	char *host;
+	char *subhost;
+	
 	worker_score *ws_record;
 	
 	char myrhostname[256];
@@ -210,10 +219,25 @@ static int core(request_rec *r, mod_config *cfg)
 
 	if ( apr_table_get(r->headers_in,"Host"))
 	{
-	memset(temp,'\0',VHOST_LEN);
-	strncpy(temp,apr_table_get(r->headers_in,"Host"),VHOST_LEN);
+    	    memset(temp,'\0',VHOST_LEN);
+	    strncpy(temp,apr_table_get(r->headers_in,"Host"),VHOST_LEN);
+	    wwwcount=0;
+                     subhost=temp;
+                      while ( *subhost == 'w' ){
+                          subhost++;
+                          wwwcount++;
+                      }
 
-	r->server->server_hostname = &temp;
+                      if ((wwwcount == 3) && (*subhost == '.')){
+                          subhost++;
+                      }else{
+	    		// ap_log_rerror(APLOG_MARK, APLOG_CRIT, 0, r,"mod_slotlimit: debug subhost %s %d   ",subhost , wwwcount);
+
+                          subhost=temp;
+                      }
+	//ap_log_rerror(APLOG_MARK, APLOG_CRIT, 0, r,"mod_slotlimit: debug %s  ",subhost);
+
+	r->server->server_hostname = subhost;
 	
 	conn_rec *c = r->connection;
 	(void)ap_update_child_status(c->sbh, SERVER_BUSY_WRITE, r);
@@ -222,9 +246,6 @@ static int core(request_rec *r, mod_config *cfg)
 
 
 	}
-
-
-
 
 	for (i = 0; i < server_limit; ++i) {
 		for (j = 0; j < thread_limit; ++j) {
@@ -437,13 +458,13 @@ static const char *force_vhost_name(cmd_parms *cmd, void *dummy, int arg)
 
 static command_rec slotlimit_cmds[] = {
 
-	AP_INIT_TAKE1("MaxClients", limit_config_cmd, NULL, RSRC_CONF,"Apache maxclient setting"),
-	AP_INIT_TAKE1("AvailableSlotsPercent", limit_config3_cmd, NULL, RSRC_CONF,"Percentage of slots available in order to set any restrictions"),
-	AP_INIT_TAKE1("MaxConnectionsPerSite", limit_config2_cmd, NULL, RSRC_CONF,"Max connections for each running site"),
-	AP_INIT_TAKE1("ClientIpLimit", limit_config5_cmd, NULL, RSRC_CONF,"Limit of simultaneous connection per IP"),
-	AP_INIT_TAKE1("CustomErrMsg", limit_config7_cmd, NULL, RSRC_CONF,"Custom error message"),
-	AP_INIT_FLAG("ForceVhostName", force_vhost_name, NULL, RSRC_CONF,"\"On\" to force vhost hostname in scoreboard, \"Off\" to disable"),
-	AP_INIT_TAKE1("CustomLimitsFile", limit_lastconfig_cmd, NULL, RSRC_CONF,"Write here custom per-site limit. Format: \"SiteName NumberOfSlots\""),
+	AP_INIT_TAKE1("MaxClients", (const char *(*)())limit_config_cmd, NULL, RSRC_CONF,"Apache maxclient setting"),
+	AP_INIT_TAKE1("AvailableSlotsPercent", (const char *(*)())limit_config3_cmd, NULL, RSRC_CONF,"Percentage of slots available in order to set any restrictions"),
+	AP_INIT_TAKE1("MaxConnectionsPerSite", (const char *(*)())limit_config2_cmd, NULL, RSRC_CONF,"Max connections for each running site"),
+	AP_INIT_TAKE1("ClientIpLimit", (const char *(*)())limit_config5_cmd, NULL, RSRC_CONF,"Limit of simultaneous connection per IP"),
+	AP_INIT_TAKE1("CustomErrMsg", (const char *(*)())limit_config7_cmd, NULL, RSRC_CONF,"Custom error message"),
+	AP_INIT_FLAG("ForceVhostName", (const char *(*)())force_vhost_name, NULL, RSRC_CONF,"\"On\" to force vhost hostname in scoreboard, \"Off\" to disable"),
+	AP_INIT_TAKE1("CustomLimitsFile", (const char *(*)())limit_lastconfig_cmd, NULL, RSRC_CONF,"Write here custom per-site limit. Format: \"SiteName NumberOfSlots\""),
 	{NULL}
 };
 

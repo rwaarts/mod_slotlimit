@@ -1,3 +1,10 @@
+
+
+Edit: fix showing the default virtualhost when a virtual host has reached the limit
+         - until the apache child dies it shows files from the default virtualhost
+
+-------------------------------------------------------------------------
+
 mod_slotlimit.c
 Luca Ercoli <luca@lucaercoli.it>
 
