@@ -2,6 +2,10 @@
 
 Edit: fix showing the default virtualhost when a virtual host has reached the limit
          - until the apache child dies it shows files from the default virtualhost
+         
+         
+Debian : apt-get install apache2-prefork-dev build-essential         
+         
 
 -------------------------------------------------------------------------
 
@@ -22,19 +26,12 @@ Synopsis
 --------------------------------------------------------------------------
 
 <IfModule mod_slotlimit.c>
-
-AvailableSlotsPercent 13
-
-MaxConnectionsPerSite 40
-
-ClientIpLimit 30
-
-CustomLimitsFile /etc/apache2/mod_slotlimit.rules
-
-ForceVhostName On
-
-CustomErrMsg "My custom error message"
-
+    AvailableSlotsPercent 13
+    MaxConnectionsPerSite 40
+    ClientIpLimit 30
+    CustomLimitsFile /etc/apache2/mod_slotlimit.rules
+    ForceVhostName On
+    CustomErrMsg "My custom error message"
 </IfModule>
 
 
