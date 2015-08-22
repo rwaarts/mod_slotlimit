@@ -1,4 +1,6 @@
-
+STILL DOES NOT WORK!
+ - loding in a server with multiple virtualhosts goes directly to the default site!
+ 
 
 Edit: fix showing the default virtualhost when a virtual host has reached the limit
          - until the apache child dies it shows files from the default virtualhost
